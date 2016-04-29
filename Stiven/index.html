@@ -1,0 +1,249 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Documento sin título</title>
+
+
+<style type="text/css"> 
+
+#coordenadas{
+	display:none;	
+}
+
+</style>
+
+
+<script type="text/javascript" src="js/jquery.js"> </script>
+
+
+<script type="text/javascript">
+
+var tamano=0;
+var operaciones=0;
+var incremento=1;
+
+$(document).ready(function(){
+	
+	
+
+	
+	
+	
+	
+	//
+	$("#entradaMatriz").submit(function(){
+		
+
+		
+		
+				$("#entradaMatriz").hide();
+				$("#coordenadas").show();
+		
+		
+				var datos= $("#parametros").serialize();
+				tamano=$("#matriz").val();
+				operaciones=$("#operaciones").val();
+				console.log(datos);
+				
+				$.ajax({
+					url:"php/parametros.php?funcion=inicializar",
+					data:datos,
+					dataType:"json",
+					success: inicio,
+					error: error,
+					
+				});
+		
+		return false;
+		
+	});
+	
+	
+	//deshabilita la acción por defecto del submit para el formulario coordenadas.
+	$("#formCoordenadas").submit(function(){
+		
+		return false;
+	});
+		
+	//ejecuat el ajax para hacer la actualización, llamando al script parámetros cuando se pase por la url la variable funcion con el valor actualizar	
+		$("#solicitud").click(function(){
+			var datos= $("#formCoordenadas").serialize();
+			console.log(datos);
+		
+			$.ajax({
+				url:"php/parametros.php?funcion=actualizar",
+				data:datos,
+				dataType:"json",
+				success: actualizar,
+				error: error,
+				
+			});
+			
+			
+		});
+		
+	//ejecuat el ajax para hacer la sumatoria, llamando al script parámetros cuando se pase por la url la variable funcion con el valor sumar		
+		$("#sumar").click(function(){
+
+			var datos= $("#formCoordenadas").serialize();
+			console.log(datos);
+		
+			$.ajax({
+				url:"php/parametros.php?funcion=sumar",
+				data:datos,
+				dataType:"json",
+				success: sumar,
+				error: error,
+			
+			});
+		
+		
+		});
+		
+		
+	
+	
+	
+	
+	$("#salidaOperacion").on("click","#volver",function(){
+		$("#entradaMatriz").show();
+		$("#coordenadas").hide();
+		$("#salida, #salidaOperacion").html("");
+		
+	});
+	
+	
+	
+	
+});
+
+//se ejecuta cuando tiene exito la comuniación con el script parametros e inicializa el vector
+function inicio(evt){
+	incremento=1;
+	$("#solicitud, #sumar").removeAttr("disabled");
+	var acum="<br></br>";
+	
+			for(z=1; z<=tamano; z++){
+				for(y=1; y<=tamano; y++){
+					for(x=1; x<=tamano; x++){
+						
+						acum+=evt.arreglo[z][y][x]+"   ";
+				
+				
+					}
+					acum+="<br>";				
+			     }
+				 acum+="<br><br>";				
+			}
+	
+	$("#salida").html(acum);
+}
+
+//se ejecuta cuando tiene exito la comuniación con el script parametros actualiza el vector mostrando los campos que fueron alterados
+function actualizar(evt){
+	console.log("actualizar: "+evt.solicitud);
+	
+		var acum="<br></br>";
+	
+			for(z=1; z<=tamano; z++){
+				for(y=1; y<=tamano; y++){
+					for(x=1; x<=tamano; x++){
+						
+						acum+=evt.arreglo[z][y][x]+"   ";
+				
+				
+					}
+					acum+="<br>";				
+			     }
+				 acum+="<br><br>";				
+			}
+	
+	$("#salida").html(acum);
+	
+	
+	$("#salidaOperacion").append(evt.solicitud+"<br>");
+	
+	//cuando supera la cantidad de operaciones permitidas deshabilita los botones y habilita otro para restablecer el inicio de pantalla
+	
+	if(incremento<=operaciones){
+		$("#operaciones").append(evt.solicitud+"<br>");
+		incremento++;
+	}else{
+		$("#solicitud, #sumar").attr("disabled","disabled");
+		$("#salidaOperacion").html('Alcanzó el máximo de operaciones     <input type="submit" name="volver"  id="volver" value="volver">');
+		incremento=0;
+	}
+}
+
+
+//se ejecuta cuando tiene exito la comunicaión con el script parametros y devuelve la sumatoria, tambien compara la cantidad de opreciones realizadas.
+function sumar(evt){	
+
+	if(incremento<=operaciones){
+		$("#salidaOperacion").append(evt.solicitud+"<br>");
+		incremento++;
+	}else{
+		$("#solicitud, #sumar").attr("disabled","disabled");
+		$("#salidaOperacion").html('Alcanzó el máximo de operaciones     <input type="submit" name="volver"  id="volver" value="volver">');
+		incremento=0;
+	}
+
+
+
+	$("#salida").html("<h1>EL VALOR DE LA SUMA ES:"+evt.arreglo+"</h1>");
+}
+
+
+
+
+function error(){
+	alert("error comunicación");
+	
+}
+
+
+
+
+</script>
+
+
+
+</head>
+
+<body>
+
+<div id="entradaMatriz">
+<form action="" method="post" id="parametros"> 
+	<label>TAMAÑO MATRIZ: </label><input type="text" name="matriz" pattern="[0-9]{1,10}" required="required"   id="matriz">
+    <label>CANTIDAD DE OPERACIONES</label><input type="text" name="operaciones" pattern="[0-9]{1,10}" required="required" id="operaciones">
+    <input type="submit" name="calcular" id="calcular" value="CALCULAR">
+</form>
+</div>
+<div id="coordenadas">
+<form action="" method="post" id="formCoordenadas"> 
+	<label>X: </label><input type="text" pattern="[0-9]{1,10}" required name="x" id="x">
+    <label>Y: </label><input type="text" pattern="[0-9]{1,10}"  required name="y" id="y">
+    <label>Z: </label><input type="text" pattern="[0-9]{1,10}" required name="z" id="z">
+    <label>W: </label><input type="text" pattern="[0-9]{1,10}" name="w" id="w">
+    <input type="submit" name="solicitud" id="solicitud" value="SOLICITUD">
+    <br>
+    
+    <label>X2: </label><input type="text" name="x2" pattern="[0-9]{1,10}" id="x2">
+    <label>Y2: </label><input type="text" name="y2" pattern="[0-9]{1,10}" id="y2">
+    <label>Z2: </label><input type="text" name="z2" pattern="[0-9]{1,10}" id="z2">
+    <input type="submit" name="sumar" id="sumar" value="SUMAR">
+    
+    
+    
+
+    
+</form>
+</div>
+
+<div id="salida"> </div>
+<div id="salidaOperacion"> </div>
+
+
+</body>
+</html>
